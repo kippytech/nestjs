@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 
@@ -7,7 +7,15 @@ export class EmployeesService {
   constructor(private readonly databaseService: DatabaseService) {}
   async create(createEmployeeDto: Prisma.EmployeeCreateInput) {
     return this.databaseService.employee.create({
-      data: createEmployeeDto,
+      data: {
+        ...createEmployeeDto,
+        employeeSetting: {
+          create: {
+            smsEnabled: true,
+            notificationsOn: false,
+          },
+        },
+      },
     });
   }
 
@@ -19,13 +27,24 @@ export class EmployeesService {
         },
       });
 
-    return this.databaseService.employee.findMany();
+    return this.databaseService.employee.findMany({
+      include: { employeeSetting: true },
+    });
   }
 
   async findOne(id: number) {
     return this.databaseService.employee.findUnique({
       where: {
         id,
+      },
+      include: {
+        employeeSetting: {
+          select: {
+            smsEnabled: true,
+            notificationsOn: true,
+          },
+        },
+        post: true,
       },
     });
   }
@@ -40,10 +59,33 @@ export class EmployeesService {
   }
 
   async remove(id: number) {
+    const employee = await this.findOne(id);
+    // const employee = await this.databaseService.employee.findUnique({
+    //   where: { id },
+    // });
+
+    if (!employee) throw new HttpException('Employee not found', 404);
+
     return this.databaseService.employee.delete({
       where: {
         id,
       },
+    });
+  }
+
+  async updateSettings(
+    id: number,
+    updateEmployeeSettingsDto: Prisma.EmployeeSettingUpdateInput,
+  ) {
+    const employee = await this.findOne(id);
+
+    if (!employee) throw new HttpException('employee not found', 404);
+
+    if (!employee.employeeSetting) throw new HttpException('bad req', 400);
+
+    return this.databaseService.employeeSetting.update({
+      where: { employeeId: id },
+      data: updateEmployeeSettingsDto,
     });
   }
 }

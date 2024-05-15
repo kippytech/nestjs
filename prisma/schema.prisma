@@ -13,13 +13,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-modelEmployee {
+model Employee {
   id    Int @id @default(autoincrement())
   name String 
   email String @unique
   role  Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  employeeSetting EmployeeSetting?
+  post Post[]
+  groupPosts EmployeeOnGroupPosts[]
+}
+
+model EmployeeSetting {
+  id  Int @id @default(autoincrement())
+  notificationsOn Boolean
+  smsEnabled  Boolean
+  employeeId  Int @unique
+  employee  Employee @relation(fields: [employeeId], references: [id])
+}
+
+model GroupPost {
+  id  Int @id @default(autoincrement())
+  title String
+  description String
+  employees EmployeeOnGroupPosts[]
+}
+
+model EmployeeOnGroupPosts {
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  groupPost GroupPost @relation(fields: [groupPostId], references: [id])
+  groupPostId Int
+
+  @@id([employeeId, groupPostId])
+}
+
+model Post {
+  id  Int @id @default(autoincrement())
+  title String
+  description String
+  employeeId  Int 
+  employee  Employee @relation(fields: [employeeId], references: [id])
 }
 
 enum Role {
