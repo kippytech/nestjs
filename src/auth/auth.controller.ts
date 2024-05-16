@@ -17,6 +17,9 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LocalGuard } from './guards/local.guard';
 import { Request } from 'express';
 import { JwtGuard } from './guards/jwt.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 
 @Controller('auth')
 // if you want to guard the whole controller
@@ -41,6 +44,19 @@ export class AuthController {
   status(@Req() req: Request) {
     console.log('req.user', req.user);
     return req.user;
+  }
+
+  @Get('daggy')
+  @Roles(['ADMIN', 'OWNER'])
+  @UseGuards(AuthGuard, RolesGuard)
+  getUser() {
+    return { username: 'daggy' };
+  }
+
+  @Get('test')
+  @UseGuards(AuthGuard)
+  getUserTest() {
+    return { test: 'test' };
   }
 
   @Get(':id')
