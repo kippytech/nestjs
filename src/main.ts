@@ -4,6 +4,7 @@ import { AllExceptionsFilter } from './all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // app.useGlobalGuards(new AuthGuard()) if u wanna use globally
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
   //logs globally

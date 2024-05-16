@@ -19,6 +19,8 @@ import { Request } from 'express';
 import { JwtGuard } from './guards/jwt.guard';
 
 @Controller('auth')
+// if you want to guard the whole controller
+// @UseGuards(AuthGuard) // AuthGuard not yet defined
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
